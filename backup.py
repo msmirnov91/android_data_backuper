@@ -1,4 +1,5 @@
 import argparse
+import json
 import logging
 import os
 from pathlib import Path
@@ -8,9 +9,7 @@ import sys
 from tqdm import tqdm
 
 
-DEFAULT_SOURCE_DIR = "/sdcard/DCIM/Camera"
-DEST_DIR = os.path.join("/", "media", "mikhail", "ADATA HD650", "auto_backup", "FromPhoneADB")
-
+SOURCE_DIR_PREFIX = "/sdcard/"
 LOG_FILE = os.path.join(".", "backup.log")
 
 
@@ -57,7 +56,15 @@ def parse_args():
     parser.add_argument("--log-level",
                     choices=["DEBUG", "INFO", "WARNING", "ERROR"],
                     default="INFO")
+    parser.add_argument("--config",
+                    type=str,
+                    default="./config.json")
     return parser.parse_args()
+
+
+def parse_config(config_path):
+    with open(config_path, "r") as f:
+        return json.load(f)
 
 
 def run_adb_command(cmd):
@@ -100,17 +107,22 @@ def ensure_device_is_ready():
 
 
 def adb_cmd(func):
-    def wrapper():
+    def wrapper(config):
         ensure_device_is_ready()
-        return func()
+        source_dir_names = config["common"]["android_dirs"]
+        dest_root_dir = config["common"]["local_dir"]
+        for source_dir_name in source_dir_names:
+            print(f"Processing directory {source_dir_name}...")
+            source_dir = SOURCE_DIR_PREFIX + source_dir_name
+            dest_dir = os.path.join(dest_root_dir, source_dir_name)
+            func(source_dir, dest_dir)
     return wrapper
 
 
-@adb_cmd
-def list_photos():
-    get_logger().debug(f"Listing files from {DEFAULT_SOURCE_DIR}...")
+def list_photos_internal(source_dir, dest_dir):
+    get_logger().debug(f"Listing files from {source_dir}...")
 
-    cmd_result = run_adb_command(["shell", "ls", DEFAULT_SOURCE_DIR])
+    cmd_result = run_adb_command(["shell", "ls", source_dir])
     result = cmd_result.stdout.split("\n")
     result = [r for r in result if r]
     exts = set()
@@ -123,17 +135,22 @@ def list_photos():
 
 
 @adb_cmd
-def pull_photos():
-    get_logger().debug(f"Making dir {DEST_DIR}...")
-    os.makedirs(DEST_DIR, exist_ok=True)
+def list_photos(source_dir, dest_dir):
+    list_photos_internal(source_dir, dest_dir)
 
-    get_logger().debug(f"Copying from {DEFAULT_SOURCE_DIR} to {DEST_DIR}")
-    photos = list_photos()
-    for p in tqdm(photos, desc="Pulled", unit="photo"):
+
+@adb_cmd
+def pull_photos(source_dir, dest_dir):
+    get_logger().debug(f"Making dir {dest_dir}...")
+    os.makedirs(dest_dir, exist_ok=True)
+
+    get_logger().debug(f"Copying from {source_dir} to {dest_dir}")
+    photos = list_photos_internal(source_dir, dest_dir)
+    for p in tqdm(photos, desc="Pulled", unit="item"):
         get_logger().debug(f"Processing file {p}")
 
-        old_path = os.path.join(DEFAULT_SOURCE_DIR, p)
-        new_path = os.path.join(DEST_DIR, p)
+        old_path = os.path.join(source_dir, p)
+        new_path = os.path.join(dest_dir, p)
 
         if os.path.exists(new_path):
             get_logger().debug(f"File {p} exists, skipping")
@@ -147,12 +164,13 @@ def pull_photos():
 
 def main():
     args = parse_args()
+    config = parse_config(args.config)
     logger = setup_logger(args.log_level)
 
     if args.list:
-        list_photos()
+        list_photos(config)
     if args.copy:
-        pull_photos()
+        pull_photos(config)
 
 
 if __name__ == "__main__":
