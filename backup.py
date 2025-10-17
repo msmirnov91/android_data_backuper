@@ -14,7 +14,7 @@ LOG_FILE = os.path.join(".", "backup.log")
 
 
 def get_logger():
-    return logging.getLogger("ADBPhotoBackup")
+    return logging.getLogger("ADBItemsBackup")
 
 
 def setup_logger(level="INFO"):
