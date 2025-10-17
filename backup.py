@@ -46,8 +46,8 @@ def setup_logger(level="INFO"):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-                    prog='Photos backup',
-                    description='Copies photos and videos from phone to HDD',
+                    prog='Items backup',
+                    description='Copies files from phone to HDD',
                     epilog='Good luck!')
     parser.add_argument('-l', '--list',
                     action='store_true')
@@ -146,15 +146,15 @@ def pull_items(source_dir, dest_dir):
     os.makedirs(dest_dir, exist_ok=True)
 
     get_logger().debug(f"Copying from {source_dir} to {dest_dir}")
-    photos = list_items_internal(source_dir, dest_dir)
-    for p in tqdm(photos, desc="Pulled", unit="item"):
-        get_logger().debug(f"Processing file {p}")
+    items = list_items_internal(source_dir, dest_dir)
+    for i in tqdm(items, desc="Pulled", unit="item"):
+        get_logger().debug(f"Processing file {i}")
 
-        old_path = os.path.join(source_dir, p)
-        new_path = os.path.join(dest_dir, p)
+        old_path = os.path.join(source_dir, i)
+        new_path = os.path.join(dest_dir, i)
 
         if os.path.exists(new_path):
-            get_logger().debug(f"File {p} exists, skipping")
+            get_logger().debug(f"File {i} exists, skipping")
             continue
 
         run_adb_command(["pull", old_path, new_path])
