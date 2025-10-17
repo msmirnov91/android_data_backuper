@@ -122,7 +122,7 @@ def adb_cmd(func):
 def list_items_internal(source_dir, dest_dir):
     get_logger().debug(f"Listing files from {source_dir}...")
 
-    cmd_result = run_adb_command(["shell", "ls", source_dir])
+    cmd_result = run_adb_command(["shell", "ls", shlex.quote(source_dir)])
     result = cmd_result.stdout.split("\n")
     return [r for r in result if r]
 
