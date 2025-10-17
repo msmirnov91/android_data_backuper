@@ -124,19 +124,20 @@ def list_photos_internal(source_dir, dest_dir):
 
     cmd_result = run_adb_command(["shell", "ls", source_dir])
     result = cmd_result.stdout.split("\n")
-    result = [r for r in result if r]
+    return [r for r in result if r]
+
+
+@adb_cmd
+def list_photos(source_dir, dest_dir):
+    result = list_photos_internal(source_dir, dest_dir)
     exts = set()
     for f in result:
         exts.add(f[-3:])
 
     result_str = '\n'.join(result)
-    get_logger().debug(f"{result_str}\n cnt: {len(result)},\n exts: {exts}")
+    get_logger().debug(f"{result_str}\n,\n exts: {exts}")
+    print(f"Items count: {len(result)}")
     return result
-
-
-@adb_cmd
-def list_photos(source_dir, dest_dir):
-    list_photos_internal(source_dir, dest_dir)
 
 
 @adb_cmd
