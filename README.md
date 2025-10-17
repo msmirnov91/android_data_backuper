@@ -33,6 +33,18 @@ python3 backup.py -cp
 
 # How to debug
 
+To ensure everything works try to list the files:
+```bash
+python3 backup.py -l
+```
+
+To enable CMD logs output specify debigging level `DEBUG`:
+```bash
+python3 backup.py -cp --log-level DEBUG
+```
+
+Moreover, the debug logs always availabie in the file `backup.log`, which is created during the backup process.
+
 Example of the `adb devices` command output:
 ```bash
 user@comp-name:~$ adb devices
