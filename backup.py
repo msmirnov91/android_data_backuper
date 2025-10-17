@@ -119,7 +119,7 @@ def adb_cmd(func):
     return wrapper
 
 
-def list_photos_internal(source_dir, dest_dir):
+def list_items_internal(source_dir, dest_dir):
     get_logger().debug(f"Listing files from {source_dir}...")
 
     cmd_result = run_adb_command(["shell", "ls", source_dir])
@@ -128,8 +128,8 @@ def list_photos_internal(source_dir, dest_dir):
 
 
 @adb_cmd
-def list_photos(source_dir, dest_dir):
-    result = list_photos_internal(source_dir, dest_dir)
+def list_items(source_dir, dest_dir):
+    result = list_items_internal(source_dir, dest_dir)
     exts = set()
     for f in result:
         exts.add(f[-3:])
@@ -141,12 +141,12 @@ def list_photos(source_dir, dest_dir):
 
 
 @adb_cmd
-def pull_photos(source_dir, dest_dir):
+def pull_items(source_dir, dest_dir):
     get_logger().debug(f"Making dir {dest_dir}...")
     os.makedirs(dest_dir, exist_ok=True)
 
     get_logger().debug(f"Copying from {source_dir} to {dest_dir}")
-    photos = list_photos_internal(source_dir, dest_dir)
+    photos = list_items_internal(source_dir, dest_dir)
     for p in tqdm(photos, desc="Pulled", unit="item"):
         get_logger().debug(f"Processing file {p}")
 
@@ -169,9 +169,9 @@ def main():
     logger = setup_logger(args.log_level)
 
     if args.list:
-        list_photos(config)
+        list_items(config)
     if args.copy:
-        pull_photos(config)
+        pull_items(config)
 
 
 if __name__ == "__main__":
