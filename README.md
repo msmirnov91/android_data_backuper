@@ -59,3 +59,7 @@ user@comp-name:~$ adb devices
 List of devices attached
 R4CFB1RY6GO     device  # Now device is ready for backuping data
 ```
+
+# Known problems
+
+On a large folders adb commands can fail with timeout. Therefore the files are copied one-by-one.
